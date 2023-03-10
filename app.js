@@ -1,50 +1,79 @@
 let Player = (id, symbol)=> {
      return { id, symbol };
-};
-
-let displayController = (() => {
+ };
+ 
+ let displayController = (() => {
      let closeFormBtn = document.querySelector(".play-btn");
      let squares = document.querySelectorAll(".square");
-     let resetBoard = () => {
-          closeFormBtn.addEventListener("click", (e) => {
-               squares.forEach(element => {
-                    element.textContent = "";
-               })
-          });
-     };
-     let initalizeClick = (gameBoard) => {
-          squares.forEach(element => {
-               element.addEventListener("click", (e) => {
-                    if(gameBoard.currPlayer.id === 1)
-                         e.target.textContent = 'X';
-                    else if(gameBoard.currPlayer.id === 2)
-                         e.target.textContent = '0';
-                         gameBoard.currPlayer = (gameBoard.currPlayer.id === 1) ? gameBoard.playerTwo : gameBoard.playerTwo;
-                    
-                    let blockid = e.target.id - 1;
-
-               });
-          });
-     };
-     
-     return {resetBoard, initalizeClick}
-})();
-
-let gameBoard = (() => {
+     let status = document.querySelector(".status");
+     let boardContainer = document.querySelector(".gameboard");
+ 
+     let displayBoard = () => {
+         boardContainer.style.visibility = 'visible';
+     }
+     return {closeFormBtn, squares, status, displayBoard}
+ })();
+ 
+ let gameBoard = (() => {
      let board = [];
      let playerOne = Player(1, 'X');
      let playerTwo = Player(2, 'O');
      let currPlayer = playerOne;
-     let winGame = false;
-     let display = Object.assign(displayController);
-     display.initalizeClick(this);
-     let initalizeGame = () => {
-          console.log("initializing game.");
-          display.resetBoard();
-          currPlayer = playerOne;
-          winGame = false;
+     let checkWinnerOrTie = () => {
+         if((board[0] === currPlayer.symbol && board[1] == currPlayer.symbol && board[2] === currPlayer.symbol) ||
+         (board[3] === currPlayer.symbol && board[4] == currPlayer.symbol && board[5] === currPlayer.symbol) ||
+         (board[6] === currPlayer.symbol && board[7] == currPlayer.symbol && board[8] === currPlayer.symbol) ||
+         (board[0] === currPlayer.symbol && board[3] == currPlayer.symbol && board[6] === currPlayer.symbol) ||    
+         (board[1] === currPlayer.symbol && board[4] == currPlayer.symbol && board[7] === currPlayer.symbol) ||
+         (board[2] === currPlayer.symbol && board[5] == currPlayer.symbol && board[8] === currPlayer.symbol) ||
+         (board[0] === currPlayer.symbol && board[4] == currPlayer.symbol && board[8] === currPlayer.symbol) ||
+         (board[2] === currPlayer.symbol && board[4] == currPlayer.symbol && board[6] === currPlayer.symbol)) {
+             displayController.status.textContent = `Player ${currPlayer.id} Wins! Press PLAY to play again`;
+             return 1;
+         } else if (!board.includes(undefined) && board.length == 9) {
+             displayController.status.textContent = `Tie Game, press PLAY to play again`;
+         } 
      };
-     return { board, playerOne, playerTwo, currPlayer, display, initalizeGame };
-})();
-
-gameBoard.initalizeGame();
+ 
+     let initalizeClick = () => {
+         displayController.squares.forEach(element => {
+               element.addEventListener("click", funct);
+          });
+     };
+ 
+     let resetBoard = () => {
+         displayController.status.textContent = "";
+         displayController.squares.forEach(element => {
+             element.textContent = "";
+         })
+         board.splice(0, board.length);
+    };
+ 
+     let initalizeGame = () => {
+         displayController.displayBoard();
+          resetBoard();
+          initalizeClick();
+          currPlayer = playerOne;      
+     };
+ 
+     function funct(event) {
+         if(event.target.textContent === "")
+         event.target.textContent = currPlayer.symbol;
+         else
+             return;
+         let blockid = event.target.id - 1;
+         board[blockid] = currPlayer.symbol;
+         if(checkWinnerOrTie()) {
+             displayController.squares.forEach(element => {
+                 element.removeEventListener("click", funct);
+             });
+         }    
+         currPlayer = (currPlayer.id === 1) ? playerTwo : playerOne; 
+   };
+ 
+     return { board, currPlayer, initalizeGame };
+ })();
+ 
+ displayController.closeFormBtn.addEventListener("click", (e) => {
+     gameBoard.initalizeGame();
+ });
